@@ -25,7 +25,6 @@
 	<!-- Use me for a JavaScript OOP Project -->
 	<script type="text/javascript" src="./js/project.js" DEFER></script>
 	<!-- Use me for a p5.js project -->
-	<script type="text/javascript" src="./js/sketch.js" DEFER></script>
 </head>
 <body>
 	<!-- Style this page by changing the CSS in ../css/site.css or css/experiment.css -->
@@ -35,27 +34,56 @@
 			<h1>Experiment X - Subject/Topic</h1>
 
 			<div class="minor-section">
-				<div id="canvas-container">
-					<!-- canvas will be added here -->
+				<div style="display: flex; gap: 0.3em; margin: 1em;">
+					<button id="clicker"
+							style="font-family: fantasy;
+								padding: 1em;
+								box-shadow: 2px 2px 5px gray; 
+								background: #00fcfc;
+								width: 100px;
+								height: 100px;
+								border-radius: 50%;">
+					  start adventure
+					</button>
+				
+					<img src="https://img.pokemondb.net/artwork/large/pikachu.jpg" alt="pikachu" width="100" />
 				</div>
-                <div class="fullscreen-box">
-                    <button id="fullscreen">Fullscreen</button>
-                </div>
+				<div id="box" 
+         			style="font-family: fantasy;
+                	border: thin solid gray; 
+					padding: 1em; margin: 1em; 
+					box-shadow: 2px 2px 5px gray; 
+					background: #ffe;">
+    			</div>
+				<p>Translated from <a href="https://glitch.com/~its-mywork" target="_new">it's-mywork!!!!!</a></p>
 			</div>
+		</div>
 
 			<div class="minor-section">
 				<h2>Description</h2>
-				<p>What are you trying to acomplish with this experiment?</p>
+				<p>
+					This project creates a grammar-based text generator on Glitch and integrates it into the Experiment 1 page of my portfolio website.
+				</p>
 			</div>
 
 			<div class="minor-section">
 				<h2>Technical</h2>
-				<p>Describe in detail what you did technically and how it works?</p>
+				<p>
+					- Replaced some filler content in the generator<br>
+					- Added images and redesigned the button appearance<br>
+					<br>
+					- This project was part of the CMPM 147 course at UCSC, with code support provided by Professor Wes Modes<br>
+					- Translation and code analysis were assisted by ChatGPT<br>
+					- Images used are sourced from the internet: https://pokemondb.net/<br>
+				</p>
 			</div>
 
 			<div class="minor-section">
 				<h2>Reflection</h2>
-				<p>Each person that worked on the code should reflect on the process, the difficulties, and the successes of the experiment.</p>
+				<p>
+					This project mainly focused on initial setup and learning how to work with various tools.<br>
+					For me, having a well-structured task breakdown and proper documentation was extremely valuable.
+				</p>
 			</div>
 
 		</section>
