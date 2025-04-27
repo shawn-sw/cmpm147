@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- This title is used for tabs and bookmarks -->
+	<title>Experiment X - Subject/Topic</title>
+
+	<!-- Use UTF character set, a good idea with any webpage -->
+	<meta charset="UTF-8" />
+	<!-- Set viewport so page remains consistently scaled w narrow devices -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<!-- Include CSS file, including a site-wide CSS and for this particular page -->
+	<link rel="stylesheet" type="text/css" href="../css/site.css">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+
+	<!-- Load jQuery library -->
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"></script>
+	<!-- Load p5.js library -->
+	<script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/p5.js"></script>
+
+	<!-- Link to javascript files - DEFER waits until all elements are rendered -->
+    <script type="text/javascript" src="../js/site.js" DEFER></script>
+	<!-- Use me for a p5.js project -->
+	<script type="text/javascript" src="./js/sketch.js" DEFER></script>
+</head>
+<body>
+	<!-- Style this page by changing the CSS in ../css/site.css or css/experiment.css -->
+	<main id="content">
+		<section>
+
+			<h1>Experiment 2 - Living Impressions</h1>
+
+			<div class="minor-section">
+				<div id="canvas-container">
+					<!-- canvas will be added here -->
+				</div>
+                <div class="fullscreen-box">
+              		 <button id="reimagine">Reimagine</button>
+                </div>
+			</div>
+
+			<div class="minor-section">
+				<h2>Description</h2>
+				<p>This project create a live impression of some landscaped image night landscape using procedural generation. The sketch included simple terrain and random star and cloud placement. Inspired by the serene moonlight ocean photo and layered night skies, I decided to focus on visual atmosphere and environmental motion.</p>
+				<img src="https://cdn.glitch.global/12b6a7f7-d243-49bf-a83e-ab01a5697ae7/moon%20ocean.jpeg?v=1744605872814" alt="Landscape Image" />
+			</div>
+
+			<div class="minor-section">
+				<h2>Technical</h2>
+				<p>Relation to inspring image:</p>
+				<p>Color: The layered sky colors were manually adjusted, including deep navy blues, silvery greys, and reflective blacks. The moon is rendered in a soft pale yellow to reflect a gentle night glow.</p>
+				<p>Primitives: Stars are drawn using drawStar . Clouds are built from overlapping ellipse.</p>
+				<p>Polygons: The terrain is randomized mountain contours formed by chaining curves together. The shape is smooth and gently rolling due to layered random() calls.</p>
+				<p>Composition: The moon, stars, clouds, and mountains all respond to a seeded random generator.</p>
+				<p>Life: Clouds float slowly from right to left, stars shimmer and the moon’s reflection on the water. Mouse position subtly influences star distribution and drift speed.</p>
+			</div>
+
+			<div class="minor-section">
+				<h2>Reflection</h2>
+				<p>Overall, the task matched the inspiration image to an acceptable degree. I learned to use lerpColor() instead of hard-coded layers to make gradients both beautiful and reusable.
+					However, the starlight effect was not as smooth as expected, and the water reflection glitter system was not up to expectations.</p>
+			</div>
+
+		</section>
+		<nav id="links" class="minor-section">
+			<!-- Put link back to homepage here. -->
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+            </ul>
+		</nav>
+	</main>
+</body>
+</html>
