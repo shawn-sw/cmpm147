@@ -107,8 +107,57 @@ function generateAlternateGrid(numCols, numRows) {
     }
     tries++;
   }
-
   return grid;
+}
+
+function generateSmoke() {
+  fill(255, 55); 
+  noStroke();
+
+  let spacing = 25; 
+  let puffiness = 50; 
+  let xOffset = 0; 
+
+  for (let y = 0; y < height; y += spacing) {
+    beginShape();
+    for (let x = 0; x < width; x++) {
+      let noiseVal = noise(x * 0.01, y * 0.01, xOffset + frameCount * 0.01);
+      let puff = map(noiseVal, 0, 1, -puffiness, puffiness);
+      vertex(x, y + puff);
+    }
+    vertex(width, y + map(noise(width * 0.01, y * 0.01, xOffset + frameCount * 0.01), 0, 1, -puffiness, puffiness));
+    vertex(width, y);
+    endShape(CLOSE);
+  }
+
+  // Increment the xOffset for Perlin noise to animate the smoke
+  xOffset += 0.05;
+
+}
+
+function generateCloud() {
+  noStroke();
+  
+  let cloudCount = 15; // 生成25朵云
+  for (let n = 0; n < cloudCount; n++) {
+    // 每一朵云
+    let speedFactor = random(0.8, 2.0); // 每朵云有不同速度
+    let baseX = (millis() / (20 / speedFactor)) % (width + 200) - 100 + random(-50, 50);
+    let baseY = random(50, 250); // 随机高度
+    let cloudSize = random(60, 120); // 每团云的总体大小
+    let puffCount = floor(random(5, 10)); 
+    
+    for (let i = 0; i < puffCount; i++) {
+      let offsetX = random(-cloudSize * 0.5, cloudSize * 0.5);
+      let offsetY = random(-cloudSize * 0.3, cloudSize * 0.3);
+      let size = random(cloudSize * 0.4, cloudSize * 0.8);
+      
+      let grayBase = random(200, 240);
+      fill(grayBase, grayBase, grayBase + random(10), random(120, 200));
+      
+      ellipse(baseX + offsetX, baseY + offsetY, size, size * 0.6);
+    }
+  }
 }
 
 
@@ -143,6 +192,7 @@ function drawDefaultGrid(grid) {
       }
     }
   }
+  generateCloud();
 }
 
 function drawAlternateGrid(grid) {
@@ -171,6 +221,7 @@ function drawAlternateGrid(grid) {
       }
     }
   }
+  generateSmoke();
 }
 
 
