@@ -35,35 +35,83 @@ function generateAlternateGrid(numCols, numRows) {
     grid.push(row);
   }
 
-  let k = floor(random(0, numRows / 2));
-  let l = floor(random(0, numCols / 2));
-  let m = floor(random(k + 1, numRows / 2));
-  let n = floor(random(l + 1, numCols / 2));
-  for (let x = k; x < m; x++) {
-    for (let y = l; y < n; y++) {
-      grid[x][y] = "?";
+  let roomCenters = [];
+  for (let i = 0; i < numRows; i++) {
+    for (let j = 0; j < numCols; j++) {
+      if (noise(i, j) * 10 > 8) {
+        roomCenters.push([i, j]);
+      }
     }
   }
 
-  let k2 = floor(random(k + 1, numRows));
-  let l2 = floor(random(l + 1, numCols));
-  let m2 = floor(random(k2 + 1, numRows));
-  let n2 = floor(random(l2 + 1, numCols));
-  for (let x = k2; x < m2; x++) {
-    for (let y = l2; y < n2; y++) {
-      grid[x][y] = ":";
+  let prevRoom = undefined;
+  while (roomCenters.length > 0) {
+    const currRoom = roomCenters.pop();
+    const roomWidth = floor(random(4, 8));
+    const roomHeight = floor(random(4, 7));
+    const startI = currRoom[0] - floor(roomHeight / 2); // currRoom[0] 是行i
+    const startJ = currRoom[1] - floor(roomWidth / 2);  // currRoom[1] 是列j
+
+    // 画房间
+    for (let i = startI; i < startI + roomHeight; i++) {
+      for (let j = startJ; j < startJ + roomWidth; j++) {
+        if (gridCheck(grid, i, j, ".")) {
+          grid[i][j] = ":"; // 房间地板
+        }
+      }
     }
+
+    if (prevRoom !== undefined) {
+      const [prevI, prevJ] = prevRoom;
+      const [currI, currJ] = currRoom;
+
+      if (random() < 0.5) {
+        // 先水平走廊，再垂直走廊
+        for (let j = min(prevJ, currJ); j <= max(prevJ, currJ); j++) {
+          if (gridCheck(grid, prevI, j, ".")) {
+            grid[prevI][j] = "|";
+          }
+        }
+        for (let i = min(prevI, currI); i <= max(prevI, currI); i++) {
+          if (gridCheck(grid, i, currJ, ".")) {
+            grid[i][currJ] = "|";
+          }
+        }
+      } else {
+        // 先垂直走廊，再水平走廊
+        for (let i = min(prevI, currI); i <= max(prevI, currI); i++) {
+          if (gridCheck(grid, i, prevJ, ".")) {
+            grid[i][prevJ] = "|";
+          }
+        }
+        for (let j = min(prevJ, currJ); j <= max(prevJ, currJ); j++) {
+          if (gridCheck(grid, currI, j, ".")) {
+            grid[currI][j] = "|";
+          }
+        }
+      }
+    }
+
+    prevRoom = currRoom;
   }
 
-  for (let x = m; x <= k2; x++) {
-    grid[x][n] = "|";
-  }
-  for (let y = l2 - 1; y >= n; y--) {
-    grid[k2][y] = "_";
+  // 随机放置宝箱
+  let chestNotPlaced = true;
+  let tries = 0;
+  while (chestNotPlaced && tries < 500) {
+    const j = floor(random(0, numCols));
+    const i = floor(random(0, numRows));
+    if (gridCheck(grid, i, j, ":") && gridCode(grid, i, j, ":") == 15) {
+      grid[i][j] = "?"; // 宝箱
+      chestNotPlaced = false;
+    }
+    tries++;
   }
 
   return grid;
 }
+
+
 
 function drawGrid(grid) {
   if (useAlternate) {
@@ -78,7 +126,7 @@ function drawDefaultGrid(grid) {
   for(let i = 0; i < grid.length; i++) {
     for(let j = 0; j < grid[i].length; j++) {
       if (grid[i][j] == '.') {
-        placeTile(i, j, floor(random(0, (random()+(millis()/4000/random()))%3)), 13);      
+        placeTile(i, j, floor(random(0, (random()+(millis()/5000/random()))%4)), 13);      
       }
       if (grid[i][j] == '_') {
         placeTile(i, j, floor(random(0, 3)), 6);
@@ -99,26 +147,27 @@ function drawDefaultGrid(grid) {
 
 function drawAlternateGrid(grid) {
   background(128);
+
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[i].length; j++) {
       const cell = grid[i][j];
 
-      if (cell === '.') {
-        placeTile(i, j, floor(random(22, 24)), 21);
-      } else if (cell === '?') {
-        placeTile(i, j, 11, floor(random(11, 24)));
-        if (random() < 0.05) {
-          placeTile(i, j, 3, 30);
-        }
-        drawContext(grid, i, j, '?', 11, 21);
-      } else if (cell === ':') {
-        placeTile(i, j, 1, floor(random(23, 24)));
-        if (random() < 0.07) {
-          placeTile(i, j, 3, 28);
-        }
-        drawContext(grid, i, j, ':', 2, 21);
-      } else if (cell === '|' || cell === '_') {
-        placeTile(i, j, 6, 27);
+      if (cell === ".") {
+        // 石头：动态闪烁
+        placeTile(j, i, floor(random(9, 12)), 18); 
+      } 
+      else if (cell === ":") {
+        // 房间地板
+        placeTile(j, i, floor(random(1, 3)), 23); 
+      } 
+      else if (cell === "|") {
+        // 走廊
+        placeTile(j, i, 22, 21); 
+      } 
+      else if (cell === "?") {
+        // 宝箱
+        placeTile(j, i, floor(random(1, 4)), floor(random(21, 24))); 
+        placeTile(j, i, 4, 28);
       }
     }
   }
