@@ -12,6 +12,22 @@
 	<!-- Include CSS file, including a site-wide CSS and for this particular page -->
 	<link rel="stylesheet" type="text/css" href="../css/site.css">
 	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<style>
+		#game-info {
+		  position: fixed;
+		  top: 60px;
+		  left: 20px;
+		  background: rgba(255, 255, 255, 0.8);
+		  padding: 10px;
+		  border-radius: 5px;
+		  font-family: Arial, sans-serif;
+		  z-index: 100;
+		}
+		canvas {
+		  position: relative;
+		  z-index: 1;
+		}
+	  </style>
 
 	<!-- Load jQuery library -->
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"
@@ -33,16 +49,25 @@
 	<main id="content">
 		<section>
 
-			<h1>Experiment 2 - Living Impressions</h1>
+			<h1>Experiment 4b - Cube Adventure</h1>
 
 			<div class="minor-section">
 				<div id="container">
-					<!-- canvas will be added here -->
+					
 				</div>
-                <div class="fullscreen-box">
-              		 <button id="reimagine">Reimagine</button>
-                </div>
+                <script>
+					function updateGameInfo(distance, score) {
+					  document.getElementById('distance-info').textContent = 
+						`Distance to blue tile: ${distance.toFixed(1)}`;
+					  document.getElementById('score-info').textContent = 
+						`Score: ${score}`;
+					}
+				  </script>
 			</div>
+			<div id="game-info">
+				<div id="distance-info">Distance to blue tile: 0.0</div>
+				<div id="score-info">Score: 0</div>
+			  </div>
 
 			<div class="minor-section">
 				<h2>Description</h2>

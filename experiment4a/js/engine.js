@@ -82,7 +82,7 @@ function setup() {
     rebuildWorld(input.value());
   });
 
-  createP("Arrow keys scroll. Clicking changes tiles.").parent("container");
+  //createP("Arrow keys scroll. Clicking changes tiles.").parent("container");
 
   rebuildWorld(input.value());
 }

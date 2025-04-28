@@ -1,191 +1,227 @@
 "use strict";
 
-/* global XXH */
-/* exported --
-    p3_preload-
-    p3_setup-
-    p3_worldKeyChanged-
-    p3_tileWidth-
-    p3_tileHeight-
-    p3_tileClicked
-    p3_drawBefore-
-    p3_drawTile
-    p3_drawSelectedTile
-    p3_drawAfter-
+/* global XXH, loadImage, createGraphics, color, CENTER, noStroke, fill, push, beginShape, vertex, endShape, pop, translate, image, floor, map, random, min */
+/* exported 
+    p3_preload, 
+    p3_setup, 
+    p3_worldKeyChanged,
+    p3_tileWidth, 
+    p3_tileHeight, 
+    p3_tileClicked,
+    p3_drawBefore, 
+    p3_drawTile, 
+    p3_drawSelectedTile, 
+    p3_drawAfter
 */
 
-function p3_preload() {}
-function p3_setup() {}
+const IMAGE_THRESHOLD = 0.6;  
+const LIFT_OFFSET = -10;       
+const TILE_WIDTH = 64;       
+const TILE_HEIGHT = 64;      
 
-let worldSeed;
-let clicks = {};
-let colorOffset = 0;
+const pokeUrls = [
+  "https://cdn.glitch.global/470f81d7-3aac-48da-b769-f5ca4f18d17f/miao.png",
+  "https://cdn.glitch.global/470f81d7-3aac-48da-b769-f5ca4f18d17f/mu.png",
+  "https://cdn.glitch.global/470f81d7-3aac-48da-b769-f5ca4f18d17f/ha.png",
+  "https://cdn.glitch.global/470f81d7-3aac-48da-b769-f5ca4f18d17f/saki.png",
+  "https://cdn.glitch.global/470f81d7-3aac-48da-b769-f5ca4f18d17f/miku.png"
+];
+
+let images = [];              
+let tileImageIndices = {};    
+let tileStates = {};           
+let clicks = {};               
+let worldSeed;                
+let tw, th;                 
+let loadingProgress = 0;     
+
+async function p3_preload() {
+  createLoadingIndicator();
+  
+  images = await Promise.all(
+    pokeUrls.map(async (url, index) => {
+      try {
+        const img = await loadImage(url + '?v=' + Date.now());
+        updateProgress(index + 1);
+        return img;
+      } catch (e) {
+        console.warn(`Image loading failed: ${url}`, e);
+        updateProgress(index + 1);
+        return createFallbackImage();
+      }
+    })
+  );
+  
+  imageMode(CENTER);
+}
+
+function p3_setup() {
+  tw = p3_tileWidth();
+  th = p3_tileHeight();
+  noSmooth(); 
+}
 
 function p3_worldKeyChanged(key) {
   worldSeed = XXH.h32(key, 0);
   noiseSeed(worldSeed);
   randomSeed(worldSeed);
-  colorOffset = Math.floor(random(0, 100));
+  
+  tileImageIndices = {};
+  tileStates = {};
   clicks = {};
 }
 
-function p3_tileWidth() { return 16; }
-function p3_tileHeight() { return 16; }
-const blockSize = p3_tileWidth();
+function p3_tileWidth() { return TILE_WIDTH; }
+function p3_tileHeight() { return TILE_HEIGHT; }
 
-function getTileKey(i, j) {
-  return `${i},${j}`;
-}
-function getHash(i, j, tag = "tile") {
-  return XXH.h32(`${tag}:${i},${j}`, worldSeed).toNumber();
-}
+function p3_tileClicked(i, j) {
+  const key = `${i}_${j}`;
+  clicks[key] = (clicks[key] || 0) + 1;
+  
+  const clickId = Date.now();
+  tileStates[key] = clickId;
 
-function p3_tileClicked(i, j, event) {
-  const key = getTileKey(i, j);
-  if (event.type === 'mousedown') {
-    clicks[key] = (clicks[key] || 0) === 1 ? 0 : 1;
-  }
-}
-
-function p3_tileHovered(i, j) {
-  if (isDragging) {  // isDragging 也是 global 的
-    const key = getTileKey(i, j);
-    clicks[key] = 1;
-  }
+  setTimeout(() => {
+    if (tileStates[key] === clickId) {
+      tileImageIndices[key] = -1;
+      setTimeout(() => {
+        if (tileStates[key] === clickId) {
+          tileImageIndices[key] = getRandomImageIndex();
+        }
+      }, 1000);
+    }
+  }, 1000);
 }
 
-function p3_drawBefore() {}
+function p3_drawBefore() {
+  background(100); 
+}
 
 function p3_drawTile(i, j) {
   noStroke();
-  push();
-
-  const key = getTileKey(i, j);
-
-  if (clicks[key] == null) {
-    const generationType = getHash(i, j) % 30;
-    if (generationType === 0) generateCross3x3(i, j);
-    else if (generationType === 1) generateSquare2x2(i, j);
-    else if (generationType === 2) generateHollowSquare3x3(i, j);
-  }
-
-  const n = clicks[key] | 0;
-  if (n > 0) {
-    generateRoof(i, j, n);
-
-  } else {
-    generateFloor(i, j);
-  }
-
-  pop();
-}
-
-function canPlaceStructure(i, j, distance = 10) {
-  for (let x = i - distance; x <= i + distance; x++) {
-    for (let y = j - distance; y <= j + distance; y++) {
-      if (clicks[getTileKey(x, y)] > 0) return false;
-    }
-  }
-  return true;
-}
-
-function generateCross3x3(i, j) {
-  if (!canPlaceStructure(i, j)) return;
-  const offsets = [[0,0], [-1,0], [1,0], [0,-1], [0,1]];
-  offsets.forEach(([dx, dy]) => clicks[getTileKey(i+dx, j+dy)] = 1);
-}
-
-function generateSquare2x2(i, j) {
-  if (!canPlaceStructure(i, j)) return;
-  const offsets = [[0,0], [1,0], [0,1], [1,1]];
-  offsets.forEach(([dx, dy]) => clicks[getTileKey(i+dx, j+dy)] = 1);
-}
-
-function generateHollowSquare3x3(i, j) {
-  if (!canPlaceStructure(i, j)) return;
-  const offsets = [
-    [-1,-1], [0,-1], [1,-1],
-    [-1, 0],        [1, 0],
-    [-1, 1], [0, 1], [1, 1]
-  ];
-  offsets.forEach(([dx, dy]) => clicks[getTileKey(i+dx, j+dy)] = 1);
-}
-
-function generateRoof(i, j, n) {
-  let hash = getHash(i, j);
-
-  colorMode(HSB);
-  let baseHue = 210; 
-  let hueJitter = map(hash, 0, 4294967295, -10, 10);
-  let saturation = map(hash, 0, 4294967295, 200, 255);
-  let brightness = map(hash, 0, 4294967295, 70, 90);
-
-  fill((baseHue + hueJitter + 360) % 360, saturation, brightness);
-  colorMode(RGB);
-
-  let sideWave = hash % 2 == 0 ? sinAt(i + millis() * 0.005) : 0;
-  let upperWave = hash % 2 == 1 ? sinAt(i + millis() * 0.005) : 0;
-
-  stroke(0);
-  strokeWeight(1);
-
-  beginShape();
-  vertex(-p3_tileWidth(), -blockSize * n + sideWave);
-  vertex(0, p3_tileHeight() - blockSize * n + upperWave);
-  vertex(p3_tileWidth(), -blockSize * n + sideWave);
-  vertex(0, -p3_tileHeight() - blockSize * n + upperWave);
-  endShape(CLOSE);
-
-  noStroke();
-}
-
-function generateFloor(i, j, n) {
-  let hash = getHash(i, j);
-
-  colorMode(HSB);
-  let baseHue = 120; 
-  let hueJitter = map(hash, 0, 4294967295, -10, 10);
-  let saturation = map(hash, 0, 4294967295, 200, 255);
-  let brightness = map(hash, 0, 4294967295, 70, 90);
-
-  fill((baseHue + hueJitter + 360) % 360, saturation, brightness);
-  colorMode(RGB);
-
-  let sideWave = hash % 2 == 0 ? sinAt(i + millis() * 0.005) : 0;
-  let upperWave = hash % 2 == 1 ? sinAt(i + millis() * 0.005) : 0;
-
-  stroke(0);
-  strokeWeight(0.2);
-
-  beginShape();
-  vertex(-p3_tileWidth(), 0 + sideWave);
-  vertex(0, p3_tileHeight() + upperWave);
-  vertex(p3_tileWidth(), 0 + sideWave);
-  vertex(0, -p3_tileHeight() + upperWave);
-  endShape(CLOSE);
-
-  noStroke();
-}
-
-
-function sinAt(x, freq = 0.3, scale = 4, timeScale = 0.001, phaseOffset = 0) {
-  let t = (x * freq + millis() * timeScale) % 1.0;
-  return (abs(t - 0.5) * 4 - 1) * scale;
+  fill(getTileColor(i, j));
+  
+  drawTileBase(i, j);
+  drawTileImage(i, j);
 }
 
 function p3_drawSelectedTile(i, j) {
-  noFill();
-  stroke(0, 255, 0, 128);
-  beginShape();
-  vertex(-p3_tileWidth(), 0);
-  vertex(0, p3_tileHeight());
-  vertex(p3_tileWidth(), 0);
-  vertex(0, -p3_tileHeight());
-  endShape(CLOSE);
-  noStroke();
-  fill(0);
-  text(`tile ${i},${j}`, 0, 0);
+  drawSelectionEffect(i, j);
+  drawCoordinates(i, j);
 }
 
 function p3_drawAfter() {}
 
+function createFallbackImage() {
+  const g = createGraphics(TILE_WIDTH, TILE_HEIGHT);
+  g.background(220);
+  g.fill(100);
+  g.stroke(150);
+  g.strokeWeight(2);
+  g.rect(5, 5, TILE_WIDTH-10, TILE_HEIGHT-10, 5);
+  g.textSize(14);
+  g.textAlign(CENTER, CENTER);
+  g.text("?", TILE_WIDTH/2, TILE_HEIGHT/2);
+  return g;
+}
+
+function getTileColor(i, j) {
+  return (i + j) % 2 === 0 
+    ? color(245) 
+    : color(255, 122, 117);
+}
+
+function drawTileBase(i, j) {
+  push();
+  beginShape();
+  vertex(-tw/2, -th/2);
+  vertex(tw/2, -th/2);
+  vertex(tw/2, th/2);
+  vertex(-tw/2, th/2);
+  endShape(CLOSE);
+  pop();
+}
+
+function drawTileImage(i, j) {
+  const key = `${i}_${j}`;
+  initTileImageIndex(key, i, j);
+  translate(-30, -30); 
+  
+  if (tileImageIndices[key] !== -1 && images[tileImageIndices[key]]) {
+    push();
+    if (tileStates[key]) translate(0, LIFT_OFFSET);
+    
+    const img = images[tileImageIndices[key]];
+    const scale = min(tw/img.width, th/img.height) * 0.9;
+    image(img, 0, 0, img.width*scale, img.height*scale);
+    
+    pop();
+  }
+}
+
+function initTileImageIndex(key, i, j) {
+  if (tileImageIndices[key] === undefined) {
+    const hash = XXH.h32("tile:" + [i, j], worldSeed);
+    const normalizedHash = (hash + 0.5) / 0xFFFFFFFF;
+    
+    tileImageIndices[key] = normalizedHash < IMAGE_THRESHOLD
+      ? -1
+      : floor(map(hash, 0, 0xFFFFFFFF, 0, images.length-1, true));
+  }
+}
+
+function drawSelectionEffect(i, j) {
+  push();
+  noFill();
+  stroke(255, 204, 0, 200);
+  strokeWeight(2);
+  rect(-tw/2+2, -th/2+2, tw-4, th-4, 5);
+  pop();
+}
+
+function drawCoordinates(i, j) {
+  push();
+  fill(255);
+  noStroke();
+  textSize(12);
+  textAlign(CENTER, CENTER);
+  text(`(${i},${j})`, 0, 0);
+  pop();
+}
+
+function getRandomImageIndex() {
+  return images.length > 0 ? floor(random(images.length)) : -1;
+}
+
+function createLoadingIndicator() {
+  const div = document.createElement('div');
+  div.id = 'loading';
+  div.style = `
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    color: white;
+    background: rgba(0,0,0,0.7);
+    padding: 10px;
+    border-radius: 5px;
+    font-family: Arial;
+  `;
+  div.innerHTML = `
+    <div>loading: <span id="progress">0%</span></div>
+    <div>Loaded: <span id="loaded">0/${pokeUrls.length}</span></div>
+  `;
+  document.body.appendChild(div);
+}
+
+function updateProgress(count) {
+  loadingProgress = count;
+  const percent = Math.floor((count / pokeUrls.length) * 100);
+  document.getElementById('progress').textContent = `${percent}%`;
+  document.getElementById('loaded').textContent = `${count}/${pokeUrls.length}`;
+  
+  if (count === pokeUrls.length) {
+    setTimeout(() => {
+      document.getElementById('loading').remove();
+    }, 1000);
+  }
+}

@@ -2,57 +2,67 @@
 
 /* global XXH */
 /* exported --
-    p3_preload-
-    p3_setup-
-    p3_worldKeyChanged-
-    p3_tileWidth-
-    p3_tileHeight-
+    p3_preload
+    p3_setup
+    p3_worldKeyChanged
+    p3_tileWidth
+    p3_tileHeight
     p3_tileClicked
-    p3_drawBefore-
+    p3_drawBefore
     p3_drawTile
     p3_drawSelectedTile
-    p3_drawAfter-
+    p3_drawAfter
 */
 
-function p3_preload() {}
-function p3_setup() {}
-
 let worldSeed;
-let clicks = {};
-let colorOffset = 0;
+let playerX = 0;
+let playerY = 0;
+let goalX, goalY;
+let tw, th;
+let score = 0; 
+let lastMoveTime = 0;
+let moveDelay = 200; 
+
+function p3_preload() {}
+
+function p3_setup() {
+  tw = p3_tileWidth();
+  th = p3_tileHeight();
+}
 
 function p3_worldKeyChanged(key) {
   worldSeed = XXH.h32(key, 0);
   noiseSeed(worldSeed);
   randomSeed(worldSeed);
-  colorOffset = Math.floor(random(0, 100));
-  clicks = {};
+  playerX = 0;
+  playerY = 0;
+  score = 0; 
+  relocateGoal();
 }
 
-function p3_tileWidth() { return 16; }
-function p3_tileHeight() { return 16; }
-const blockSize = p3_tileWidth();
-
-function getTileKey(i, j) {
-  return `${i},${j}`;
-}
-function getHash(i, j, tag = "tile") {
-  return XXH.h32(`${tag}:${i},${j}`, worldSeed).toNumber();
-}
-
-function p3_tileClicked(i, j, event) {
-  const key = getTileKey(i, j);
-  if (event.type === 'mousedown') {
-    clicks[key] = (clicks[key] || 0) === 1 ? 0 : 1;
-  }
+function relocateGoal() {
+  do {
+    goalX = playerX + Math.floor(random(-10, 11));
+    goalY = playerY + Math.floor(random(-10, 11));
+  } while (
+    (goalX === playerX && goalY === playerY) || 
+    isMountain(goalX, goalY) 
+  );
 }
 
-function p3_tileHovered(i, j) {
-  if (isDragging) {  // isDragging 也是 global 的
-    const key = getTileKey(i, j);
-    clicks[key] = 1;
-  }
+function p3_tileWidth() {
+  return 32;
 }
+
+function p3_tileHeight() {
+  return 16;
+}
+
+function isMountain(i, j) {
+  return (XXH.h32("terrain:" + [i, j], worldSeed) % 10) === 0;
+}
+
+function p3_tileClicked(i, j) {}
 
 function p3_drawBefore() {}
 
@@ -60,132 +70,87 @@ function p3_drawTile(i, j) {
   noStroke();
   push();
 
-  const key = getTileKey(i, j);
-
-  if (clicks[key] == null) {
-    const generationType = getHash(i, j) % 30;
-    if (generationType === 0) generateCross3x3(i, j);
-    else if (generationType === 1) generateSquare2x2(i, j);
-    else if (generationType === 2) generateHollowSquare3x3(i, j);
-  }
-
-  const n = clicks[key] | 0;
-  if (n > 0) {
-    generateRoof(i, j, n);
-
+  if (i === playerX && j === playerY) {
+    fill(0, 100, 255); // 玩家
+    rectMode(CENTER);
+    rect(0, 0, tw / 2, th);
+  } else if (i === goalX && j === goalY) {
+    fill(173, 216, 230); // 目标
+    beginShape();
+    vertex(-tw, 0);
+    vertex(0, th);
+    vertex(tw, 0);
+    vertex(0, -th);
+    endShape(CLOSE);
+  } else if (isMountain(i, j)) {
+    fill(0); // 山脉
+    beginShape();
+    vertex(-tw, 0);
+    vertex(0, th);
+    vertex(tw, 0);
+    vertex(0, -th);
+    endShape(CLOSE);
   } else {
-    generateFloor(i, j);
+    fill(0, 180 + noise(i * 0.1, j * 0.1) * 75, 0); // 更丰富的绿色
+    beginShape();
+    vertex(-tw, 0);
+    vertex(0, th);
+    vertex(tw, 0);
+    vertex(0, -th);
+    endShape(CLOSE);
   }
 
   pop();
-}
-
-function canPlaceStructure(i, j, distance = 10) {
-  for (let x = i - distance; x <= i + distance; x++) {
-    for (let y = j - distance; y <= j + distance; y++) {
-      if (clicks[getTileKey(x, y)] > 0) return false;
-    }
-  }
-  return true;
-}
-
-function generateCross3x3(i, j) {
-  if (!canPlaceStructure(i, j)) return;
-  const offsets = [[0,0], [-1,0], [1,0], [0,-1], [0,1]];
-  offsets.forEach(([dx, dy]) => clicks[getTileKey(i+dx, j+dy)] = 1);
-}
-
-function generateSquare2x2(i, j) {
-  if (!canPlaceStructure(i, j)) return;
-  const offsets = [[0,0], [1,0], [0,1], [1,1]];
-  offsets.forEach(([dx, dy]) => clicks[getTileKey(i+dx, j+dy)] = 1);
-}
-
-function generateHollowSquare3x3(i, j) {
-  if (!canPlaceStructure(i, j)) return;
-  const offsets = [
-    [-1,-1], [0,-1], [1,-1],
-    [-1, 0],        [1, 0],
-    [-1, 1], [0, 1], [1, 1]
-  ];
-  offsets.forEach(([dx, dy]) => clicks[getTileKey(i+dx, j+dy)] = 1);
-}
-
-function generateRoof(i, j, n) {
-  let hash = getHash(i, j);
-
-  colorMode(HSB);
-  let baseHue = 210; 
-  let hueJitter = map(hash, 0, 4294967295, -10, 10);
-  let saturation = map(hash, 0, 4294967295, 200, 255);
-  let brightness = map(hash, 0, 4294967295, 70, 90);
-
-  fill((baseHue + hueJitter + 360) % 360, saturation, brightness);
-  colorMode(RGB);
-
-  let sideWave = hash % 2 == 0 ? sinAt(i + millis() * 0.005) : 0;
-  let upperWave = hash % 2 == 1 ? sinAt(i + millis() * 0.005) : 0;
-
-  stroke(0);
-  strokeWeight(1);
-
-  beginShape();
-  vertex(-p3_tileWidth(), -blockSize * n + sideWave);
-  vertex(0, p3_tileHeight() - blockSize * n + upperWave);
-  vertex(p3_tileWidth(), -blockSize * n + sideWave);
-  vertex(0, -p3_tileHeight() - blockSize * n + upperWave);
-  endShape(CLOSE);
-
-  noStroke();
-}
-
-function generateFloor(i, j, n) {
-  let hash = getHash(i, j);
-
-  colorMode(HSB);
-  let baseHue = 120; 
-  let hueJitter = map(hash, 0, 4294967295, -10, 10);
-  let saturation = map(hash, 0, 4294967295, 200, 255);
-  let brightness = map(hash, 0, 4294967295, 70, 90);
-
-  fill((baseHue + hueJitter + 360) % 360, saturation, brightness);
-  colorMode(RGB);
-
-  let sideWave = hash % 2 == 0 ? sinAt(i + millis() * 0.005) : 0;
-  let upperWave = hash % 2 == 1 ? sinAt(i + millis() * 0.005) : 0;
-
-  stroke(0);
-  strokeWeight(0.2);
-
-  beginShape();
-  vertex(-p3_tileWidth(), 0 + sideWave);
-  vertex(0, p3_tileHeight() + upperWave);
-  vertex(p3_tileWidth(), 0 + sideWave);
-  vertex(0, -p3_tileHeight() + upperWave);
-  endShape(CLOSE);
-
-  noStroke();
-}
-
-
-function sinAt(x, freq = 0.3, scale = 4, timeScale = 0.001, phaseOffset = 0) {
-  let t = (x * freq + millis() * timeScale) % 1.0;
-  return (abs(t - 0.5) * 4 - 1) * scale;
 }
 
 function p3_drawSelectedTile(i, j) {
   noFill();
   stroke(0, 255, 0, 128);
   beginShape();
-  vertex(-p3_tileWidth(), 0);
-  vertex(0, p3_tileHeight());
-  vertex(p3_tileWidth(), 0);
-  vertex(0, -p3_tileHeight());
+  vertex(-tw, 0);
+  vertex(0, th);
+  vertex(tw, 0);
+  vertex(0, -th);
   endShape(CLOSE);
+
   noStroke();
   fill(0);
-  text(`tile ${i},${j}`, 0, 0);
+  textAlign(CENTER, CENTER);
+  textSize(10);
+  text(`(${i},${j})`, 0, 0);
 }
 
-function p3_drawAfter() {}
+function p3_drawAfter() {
+  let now = millis();
+  let moveX = 0;
+  let moveY = 0;
 
+  if (keyIsDown(87)) moveY--; // W 上
+  if (keyIsDown(83)) moveY++; // S 下
+  if (keyIsDown(65)) moveX++; // A 左
+  if (keyIsDown(68)) moveX--; // D 右
+
+  if (now - lastMoveTime > moveDelay) {
+    if ((moveX !== 0 || moveY !== 0) && !isMountain(playerX + moveX, playerY + moveY)) {
+      playerX += moveX;
+      playerY += moveY;
+      lastMoveTime = now;
+    }
+  }
+
+  if (playerX === goalX && playerY === goalY) {
+    score++; 
+    relocateGoal();
+  }
+
+  const dist = findGoalDistance();
+  if (typeof updateGameInfo === 'function') {
+    updateGameInfo(dist, score);
+  }
+}
+
+function findGoalDistance() {
+  let dx = goalX - playerX;
+  let dy = goalY - playerY;
+  return Math.sqrt(dx * dx + dy * dy);
+}

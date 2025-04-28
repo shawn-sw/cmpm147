@@ -82,7 +82,7 @@ function setup() {
     rebuildWorld(input.value());
   });
 
-  createP("Arrow keys scroll. Clicking changes tiles.").parent("container");
+  //createP("Arrow keys scroll. Clicking changes tiles.").parent("container");
 
   rebuildWorld(input.value());
 }
@@ -97,14 +97,14 @@ function rebuildWorld(key) {
   tile_rows = Math.ceil(height / (tile_height_step_main * 2));
 }
 
-function mouseClicked(event) {
+function mouseClicked() {
   let world_pos = screenToWorld(
     [0 - mouseX, mouseY],
     [camera_offset.x, camera_offset.y]
   );
 
   if (window.p3_tileClicked) {
-    window.p3_tileClicked(world_pos[0], world_pos[1], event);
+    window.p3_tileClicked(world_pos[0], world_pos[1]);
   }
   return false;
 }
@@ -206,42 +206,4 @@ function drawTile([world_x, world_y], [camera_x, camera_y]) {
     window.p3_drawTile(world_x, world_y, -screen_x, screen_y);
   }
   pop();
-}
-
-let isDragging = false;
-
-function mousePressed() {
-  isDragging = true;
-  callTileClicked(mouseX, mouseY, 'mousedown');
-}
-
-function mouseReleased() {
-  isDragging = false;
-}
-
-function mouseDragged(event) {
-  if (isDragging) {
-    callTileHovered(mouseX, mouseY);
-  }
-}
-
-// 内部统一调用
-function callTileClicked(mx, my, type) {
-  let world_pos = screenToWorld(
-    [0 - mx, my],
-    [camera_offset.x, camera_offset.y]
-  );
-  if (window.p3_tileClicked) {
-    window.p3_tileClicked(world_pos[0], world_pos[1], { type: type });
-  }
-}
-
-function callTileHovered(mx, my) {
-  let world_pos = screenToWorld(
-    [0 - mx, my],
-    [camera_offset.x, camera_offset.y]
-  );
-  if (window.p3_tileHovered) {
-    window.p3_tileHovered(world_pos[0], world_pos[1]);
-  }
 }
