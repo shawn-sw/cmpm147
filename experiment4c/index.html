@@ -21,9 +21,12 @@
 	<script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/p5.js"></script>
 
 	<!-- Link to javascript files - DEFER waits until all elements are rendered -->
-    <script type="text/javascript" src="../js/site.js" DEFER></script>
+    <!-- <script type="text/javascript" src="../js/site.js" DEFER></script> -->
 	<!-- Use me for a p5.js project -->
-	<script type="text/javascript" src="./js/sketch.js" DEFER></script>
+	<script src="./js/xxhash.min.js" DEFER></script>
+	<script type="text/javascript" src="./js/engine.js" DEFER></script>
+	<script type="text/javascript" src="./js/my_world.js" DEFER></script>
+
 </head>
 <body>
 	<!-- Style this page by changing the CSS in ../css/site.css or css/experiment.css -->
@@ -33,7 +36,7 @@
 			<h1>Experiment 2 - Living Impressions</h1>
 
 			<div class="minor-section">
-				<div id="canvas-container">
+				<div id="container">
 					<!-- canvas will be added here -->
 				</div>
                 <div class="fullscreen-box">
@@ -67,7 +70,7 @@
 		<nav id="links" class="minor-section">
 			<!-- Put link back to homepage here. -->
             <ul>
-                <li><a href="/cmpm147/index.html">Home</a></li>
+                <li><a href="../index.html">Home</a></li>
             </ul>
 		</nav>
 	</main>
