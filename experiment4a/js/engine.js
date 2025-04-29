@@ -76,15 +76,15 @@ function setup() {
   label.html("World key: ");
   label.parent("container");
 
-  let input = createInput("xyzzy");
-  input.parent(label);
-  input.input(() => {
-    rebuildWorld(input.value());
+  let myInput = createInput("xyzzy");
+  myInput.parent(label);
+  myInput.input(() => {
+    rebuildWorld(myInput.value());
   });
 
   //createP("Arrow keys scroll. Clicking changes tiles.").parent("container");
 
-  rebuildWorld(input.value());
+  rebuildWorld(myInput.value());
 }
 
 function rebuildWorld(key) {

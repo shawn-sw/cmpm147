@@ -21,7 +21,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/p5.js"></script>
 
 	<!-- Link to javascript files - DEFER waits until all elements are rendered -->
-    <!-- <script type="text/javascript" src="../js/site.js" DEFER></script> -->
+	<script type="text/javascript" src="../js/site.js" DEFER></script>
 	<!-- Use me for a p5.js project -->
 	<script src="./js/xxhash.min.js" DEFER></script>
 	<script type="text/javascript" src="./js/engine.js" DEFER></script>
@@ -39,27 +39,25 @@
 				<div id="container">
 					<!-- canvas will be added here -->
 				</div>
+				<p>- click or drag the mouse</p>
 			</div>
 
 			<div class="minor-section">
 				<h2>Description</h2>
-				<p>This project create a live impression of some landscaped image night landscape using procedural generation. The sketch included simple terrain and random star and cloud placement. Inspired by the serene moonlight ocean photo and layered night skies, I decided to focus on visual atmosphere and environmental motion.</p>
+				<p>Offset Brush is an infinite procedural world focused on building dynamic terrain and structures. Players can click or drag the mouse to batch-build rooftops and floor tiles, while the ground continuously fluctuates over time to create a lively environment.</p>
 			</div>
 
 			<div class="minor-section">
 				<h2>Technical</h2>
-				<p>Relation to inspring image:</p>
-				<p>Color: The layered sky colors were manually adjusted, including deep navy blues, silvery greys, and reflective blacks. The moon is rendered in a soft pale yellow to reflect a gentle night glow.</p>
-				<p>Primitives: Stars are drawn using drawStar . Clouds are built from overlapping ellipse.</p>
-				<p>Polygons: The terrain is randomized mountain contours formed by chaining curves together. The shape is smooth and gently rolling due to layered random() calls.</p>
-				<p>Composition: The moon, stars, clouds, and mountains all respond to a seeded random generator.</p>
-				<p>Life: Clouds float slowly from right to left, stars shimmer and the moon’s reflection on the water. Mouse position subtly influences star distribution and drift speed.</p>
+				<p>- Implemented a procedurally generated tile-based map.</p>
+				<p>- Added mouse click and drag batch-building functionality to activate multiple tiles simultaneously.</p>
+				<p>- Introduced a wave effect that makes the ground and buildings rise and fall rhythmically over time.</p>
+				<p>- Used seed control (key) to ensure world reproducibility and variation.</p>			
 			</div>
 
 			<div class="minor-section">
 				<h2>Reflection</h2>
-				<p>Overall, the task matched the inspiration image to an acceptable degree. I learned to use lerpColor() instead of hard-coded layers to make gradients both beautiful and reusable.
-					However, the starlight effect was not as smooth as expected, and the water reflection glitter system was not up to expectations.</p>
+				<p>This project helped me understand the basics of procedural generation and interactive systems. Although the initial version felt repetitive, introducing batch-building and dynamic terrain greatly improved the experience. One major challenge was resolving tile overlap issues during construction, which I eventually solved by adding placement detection logic..</p>
 			</div>
 
 		</section>
@@ -67,7 +65,15 @@
 			<!-- Put link back to homepage here. -->
             <ul>
                 <li>
-					<a href="/cmpm147/index.html">Home</a>
+					<a href="../index.html"
+   onclick="event.preventDefault();
+            if (window.top !== window) {
+                window.top.location.href = this.href;
+            } else {
+                window.location.href = this.href;
+            }">
+Home
+</a>
 				</li>
             </ul>
 		</nav>
