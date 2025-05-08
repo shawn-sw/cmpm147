@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- This title is used for tabs and bookmarks -->
+	<title>Experiment 3 - Alternate Worlds</title>
+
+	<!-- Use UTF character set, a good idea with any webpage -->
+	<meta charset="UTF-8" />
+	<!-- Set viewport so page remains consistently scaled w narrow devices -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<!-- Include CSS file, including a site-wide CSS and for this particular page -->
+	<link rel="stylesheet" type="text/css" href="../css/site.css">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+
+	<!-- Load jQuery library -->
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"></script>
+	<!-- Load p5.js library -->
+	<script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/p5.js"></script>
+
+	<!-- Link to javascript files - DEFER waits until all elements are rendered -->
+    <script type="text/javascript" src="../js/site.js" DEFER></script>
+	<!-- Use me for a JavaScript OOP Project -->
+	<script type="text/javascript" src="./js/mydesign.js" DEFER></script>
+	<script type="text/javascript" src="./js/sketch.js" DEFER></script>
+</head>
+<body>
+	<!-- Style this page by changing the CSS in ../css/site.css or css/experiment.css -->
+	<main id="content">
+		<section>
+
+			<h1>Experiment 5 - Evolutionary Impressions</h1>
+
+			<div class="minor-section">
+				<label for="shapeDropdown">Shape:</label>
+				<select id="shapeDropdown">
+				  <option value="rectangles">Rectangles</option>
+				  <option value="ellipse">Ellipses</option>
+				  <option value="triangle">Triangles</option>
+				</select>
+			  
+				<select id="dropper"></select>
+				<button id="restart">Restart</button>
+			  
+				<p id="inspiration">
+				  <img id="inspo-img" width="50%" height="50%" />
+				</p>
+			  
+				<p>
+				  Mutation rate (<span id="rate"></span>%):<br />
+				  <input id="slider" type="range" min="1" max="100" value="100" />
+				</p>
+			  
+				<p id="active"></p>
+				<p>Active score: <span id="activeScore"></span></p>
+				<p>Exploration rate: <span id="fpsCounter"></span> fps</p>
+				<p id="best"></p>
+				<p>Best score: <span id="bestScore"></span></p>
+				<p id="memory" data-max-items="16"></p>
+			  </div>
+
+			<div class="minor-section">
+				<h2>Description</h2>
+				<p>This project aims to use procedural generation techniques to build two tile-based worlds, an overworld and a dungeon.</p>
+			</div>
+
+			<div class="minor-section">
+				<h2>Technical</h2>
+				<p>Use p5.js and the provided tileset to create a randomly generated environment.
+					Using functions like noise, I get the output I want.
+					Adding elements ensures that the landscape is randomly generated every time the user presses the "reseed" button.</p>
+			</div>
+
+			<div class="minor-section">
+				<h2>Reflection</h2>
+				<p>This experiment was by far the hardest one for me. I had never used tilesets in p5.js before, and the main difficulties for me were corner tiles, animated tiles, and the use of tilesets. Also, generating a second map with a different structure was a challenge. I consulted with some friends to get my map to work properly.</p>
+			</div>
+
+		</section>
+		<nav id="links" class="minor-section">
+			<!-- Put link back to homepage here. -->
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+            </ul>
+		</nav>
+	</main>
+</body>
+</html>
